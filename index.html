@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <title>Asentamientos de población en Argentina</title>
+      <meta name="description" content="Localidades, municipios y ciudades de Argentina">
+        <meta name="keywords" content="localidades, municipios, ciudades, argentina, 2014">
+        <meta name="author" content="Andres Vazquez">
+        <meta property=”og:title” content="Asentamientos de población en Argentina"/>
+        <meta property=”og:description” content="Localidades, municipios y ciudades de Argentina"/>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #info {margin: 5px;}
+      #map-canvas { height: 90%; padding: 10px; }
+    </style>
+    <script type="text/javascript" src="resources/js/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript">  
+      var marcadores = [];
+      var map;
+      var datos = []; // all dataset
+      var datosT = {}; //datos como totales, max y min
+      var datosT2 = [] // maximos, minimos y totales por radio
+      var datosP = []; //porcentajes de los valores
+      var datosMin = [];
+      var datosMax = [];//indica si un valor es el máximo de su grupo
+      var flds = {};
+      var urlBase = "http://localhost/andres/devs/Hackatong-programar/Bahra";
+      function initialize() {
+      
+var styleMap = [
+{"featureType": "water","elementType": "geometry","stylers": [{"visibility": "on"},{"color": "#aee2e0"}]},
+{"featureType": "landscape","elementType": "geometry.fill","stylers": [{"color": "#abce83"}]},
+{"featureType": "poi","elementType": "geometry.fill","stylers": [{"color": "#769E72"}]},
+{"featureType": "poi","elementType": "labels.text.fill","stylers": [{"color": "#7B8758"}]},
+{"featureType": "poi","elementType": "labels.text.stroke","stylers": [{"color": "#EBF4A4"}]},
+{"featureType": "poi.park","elementType": "geometry","stylers": [{"visibility": "simplified"},{"color": "#8dab68"}]},
+{"featureType": "road","elementType": "geometry.fill","stylers": [{"visibility": "simplified"}]},
+{"featureType": "road","elementType": "labels.text.fill","stylers": [{"color": "#5B5B3F"}]},
+{"featureType": "road","elementType": "labels.text.stroke","stylers": [{"color": "#ABCE83"}]},
+{"featureType": "road","elementType": "labels.icon","stylers": [{"visibility": "off"}]},
+{"featureType": "road.local","elementType": "geometry","stylers": [{"color": "#A4C67D"}]},
+{"featureType": "road.arterial","elementType": "geometry","stylers": [{"color": "#9BBF72"}]},
+{"featureType": "road.highway","elementType": "geometry","stylers": [{"color": "#EBF4A4"}]},
+{"featureType": "transit","stylers": [{"visibility": "off"}]},
+{"featureType": "administrative","elementType": "geometry.stroke","stylers": [{"visibility": "on"},{"color": "#87ae79"}]},
+{"featureType": "administrative","elementType": "geometry.fill","stylers": [{"color": "#7f2200"},{"visibility": "off"}]},
+{"featureType": "administrative","elementType": "labels.text.stroke","stylers": [{"color": "#ffffff"},{"visibility": "on"},{"weight": 4.1}]},
+{"featureType": "administrative","elementType": "labels.text.fill","stylers": [{"color": "#495421"}]},
+{"featureType": "administrative.neighborhood","elementType": "labels","stylers": [{"visibility": "off"}]}];
+
+        // read GET parametrers
+        var getP = {};
+        location.search.substr(1).split("&").forEach(function(item) {getP[item.split("=")[0]] = item.split("=")[1];});
+        if (undefined === getP.l1) getP.l1 = -32.41938502643319;
+        if (undefined === getP.l2) getP.l2 = -64.4349219375;
+        if (undefined === getP.z) getP.z = 7;
+        else getP.z = parseInt(getP.z);
+        if (undefined === getP.dato) getP.dato = "TODO";
+        
+        var mapOptions = {zoom: getP.z, center: new google.maps.LatLng(getP.l1,getP.l2)
+            , mapTypeId: google.maps.MapTypeId.TERRAIN
+            , styles: styleMap};
+        map = new google.maps.Map(document.getElementById('map-canvas'),mapOptions);
+        google.maps.event.addListener(map, 'dragend', showData);
+        //google.maps.event.addListener(map, 'center_changed', showData);
+        google.maps.event.addListener(map, 'zoom_changed', showData);      
+        
+        
+        /*
+        var infod = document.createElement('div');
+        $(infod).attr("id", "info");
+        $(infod).html("<div style='margin: 15px; padding: 35px; background-color: white; border-radius: 5px'><h1>Cargando ...</h1></div>");
+        
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(infod);
+        
+        var info = "<div style='margin: 15px; max-width: 1250px;background-color: rgba(68, 70, 49, 0.9); padding: 15px; color: white; border-radius: 15px;'>";
+        info += "<h3 style='margin-top: -5px;'>Mapa de Cordoba, datos censo 2010</h3> ";
+        info += "<div id='loading' style='padding:5px; float:left'><img src='resources/img/loading.gif' /></div>"
+
+        //filtro de servicios de DNS
+        var content = [];
+        content.push('Elija variable: ');
+        content.push('<select id="seldata" onchange="showData();">');
+        flds = ["A", "B", "C"];
+        $.each( flds, function( i, item ) {
+            var sel = (i == getP.dato) ? "selected='selected'" : "";
+            content.push("<option value='"+i+"' " + sel +">" + item + "</option>");
+            });
+        content.push('</select>');
+        
+        content.push('<input type="button" value="ayuda" onclick="$(\'#helpp\').toggle();" />');
+        content.push('<a style="color:white;" href="andresvazquez.com.ar/blog/cordoba-a-nivel-de-radio-censal/" target="_blank">De donde salen estos datos?</a>');
+        
+        content.push("<div id='helpp' style='display:none'>");
+        content.push("<h3>Consideraciones</h3>");
+        content.push("Cada desplazamiento en el mapa (incluyendo zoom) y seleccion de grafico cambia la URL en la barra de direcciones para que pueda compartir <i>exactamente</i> lo que esta viendo solo copiando esta direccion");
+        content.push("<br/>Cada punto en el mapa es una estimacion bastante acertada pero no exacta del centro de cada <i>radio censal</i>");
+        content.push("</div>");
+        content.push("</div>");
+        info += content.join('');
+
+
+        $(infod).html(info);
+        */
+        loadPoints();
+        
+      }
+      
+      function loadPoints()
+        {
+        var xr = $.getJSON("resources/BAHRA.json");
+        xr.done( function(data) {
+            $.each( data, function( i, item ) {
+                datos[i] = item;
+                });
+                showData();
+            });
+        xr.fail( function(data) {
+            alert ("FAIL!");
+            });
+        }
+        
+     function showData()
+        {
+        upUrl();
+        var variable = $('#seldata').val();
+        //if (undefined === variable) return;
+        
+        $("#loading").show(400);
+        var infowindow = [];
+        var contWin = [];
+        for (var k=0; k < datos.length; k++)
+            {
+            var lati = datos[k].lat_gd;
+            var longi = datos[k].long_gd;
+            
+            var myLatlng = new google.maps.LatLng(lati, longi);
+            if (!map.getBounds().contains(myLatlng)) continue; //SI NO ESTA A LA VISTA NO VA!
+            
+            contWin[k] = "<div style='padding: 10px; max-height: 300px; overflow:auto;'>";
+            contWin[k] += "Asentamiento: <b>" + datos[k].nombre_bahra + "</b>";
+            contWin[k] += "<br/>Ubicado por <b>" + datos[k].fuente_ubicacion+ "</b>";
+            contWin[k] += "<br/>Provincia <b>" + datos[k].nom_prov+ "</b>";
+                
+            infowindow[k] = new google.maps.InfoWindow({content: contWin[k]});
+            
+            var pointData = {
+               strokeColor: "#000000",
+               strokeOpacity: 0.8,
+               strokeWeight: 2,
+               fillColor: "#0099FF",
+               fillOpacity: 0.55,
+               map: map,
+               draggable: true,
+               center: myLatlng,
+               radius: 500,
+               clickable: true,
+               idx: k
+             };
+             // Add the circle for this city to the map.
+             cityCircle = new google.maps.Circle(pointData);
+             cityCircle.setMap(map);  
+             
+             google.maps.event.addListener(cityCircle, 'click', function(ev){
+               infowindow[this.idx].setPosition(ev.latLng);
+               infowindow[this.idx].open(map);
+               });
+        $("#loading").hide(400);    
+        }
+    }
+      
+      function upUrl()
+        {
+        var bc = map.getCenter();
+        var bz = map.getZoom();
+        var dato = $("#seldata").val();
+        var newPos = urlBase;
+        newPos += "?dato="+dato+"&z=" + bz + "&l1=" + bc.lat() + "&l2=" + bc.lng();
+        var dataValue = $('[name="dataValue"]:checked').val();
+        newPos += "&sel="+dataValue;
+        window.history.pushState("Drag map", "Mapa 2", newPos);
+        }
+
+      function loadScript() {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        //script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyDtM2Vw54AOuuqWBnECYdQn15XtxVC1s-c&sensor=false&callback=initialize';
+        //script.src = 'https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&callback=initialize&libraries=visualization';
+        script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyDtM2Vw54AOuuqWBnECYdQn15XtxVC1s-c&sensor=false&callback=initialize&libraries=visualization';
+        document.body.appendChild(script);
+      }
+      
+      $(document).ready(
+            function()
+                {
+                loadScript(); 
+                });
+      
+    </script>
+    
+    
+    
+    
+    
+  </head>
+  <body>
+    <div id="map-canvas"/>
+    
+    <script type="text/javascript">
+
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-24864140-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+  </script>
+  
+  </body>
+  
+  
+</html>
