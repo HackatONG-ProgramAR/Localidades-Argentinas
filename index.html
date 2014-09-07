@@ -89,7 +89,7 @@ var styleMap = [
         info +="<h4>Datos y código</h4>";
         info +="Puede verse <a target='_blank' href='https://github.com/HackatONG-ProgramAR/Localidades-Argentinas'>aqui</a>";
         
-        info += "<div id='loading' style='padding:5px; clear:both; float:left'><img src='resources/img/loading.gif' /></div>"
+        info += "<div id='loading' style='padding:5px; clear:both;'><img src='resources/img/loading.gif' /><div id='counterload'></div></div>"
         info += "</div>";
         
         /*
@@ -142,7 +142,7 @@ var styleMap = [
         var contWin = [];
         for (var k=0; k < datos.length; k++)
             {
-            $("#loading").html(k + " de " + datos.length);
+            $("#counterload").html(k + " de " + datos.length);
             var lati = datos[k].lat_gd;
             var longi = datos[k].long_gd;
             
