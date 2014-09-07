@@ -72,6 +72,12 @@ var styleMap = [
         
         
         /*
+         * tipos. 
+         * Asentamiento humano
+         * Localidad censal
+         * Sitio edificado
+        */
+       /*
         var infod = document.createElement('div');
         $(infod).attr("id", "info");
         $(infod).html("<div style='margin: 15px; padding: 35px; background-color: white; border-radius: 5px'><h1>Cargando ...</h1></div>");
@@ -82,7 +88,6 @@ var styleMap = [
         info += "<h3 style='margin-top: -5px;'>Mapa de Cordoba, datos censo 2010</h3> ";
         info += "<div id='loading' style='padding:5px; float:left'><img src='resources/img/loading.gif' /></div>"
 
-        //filtro de servicios de DNS
         var content = [];
         content.push('Elija variable: ');
         content.push('<select id="seldata" onchange="showData();">');
@@ -132,6 +137,10 @@ var styleMap = [
         //if (undefined === variable) return;
         
         $("#loading").show(400);
+        
+        for (var k=0; k < marcadores.length; k++)
+            {marcadores[k].setMap(null)}
+        
         var infowindow = [];
         var contWin = [];
         for (var k=0; k < datos.length; k++)
@@ -165,6 +174,7 @@ var styleMap = [
              // Add the circle for this city to the map.
              cityCircle = new google.maps.Circle(pointData);
              cityCircle.setMap(map);  
+             marcadores.push(cityCircle)
              
              google.maps.event.addListener(cityCircle, 'click', function(ev){
                infowindow[this.idx].setPosition(ev.latLng);
