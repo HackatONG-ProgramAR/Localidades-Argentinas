@@ -77,7 +77,7 @@ var styleMap = [
          * Localidad censal
          * Sitio edificado
         */
-       /*
+       
         var infod = document.createElement('div');
         $(infod).attr("id", "info");
         $(infod).html("<div style='margin: 15px; padding: 35px; background-color: white; border-radius: 5px'><h1>Cargando ...</h1></div>");
@@ -85,9 +85,14 @@ var styleMap = [
         map.controls[google.maps.ControlPosition.TOP_LEFT].push(infod);
         
         var info = "<div style='margin: 15px; max-width: 1250px;background-color: rgba(68, 70, 49, 0.9); padding: 15px; color: white; border-radius: 15px;'>";
-        info += "<h3 style='margin-top: -5px;'>Mapa de Cordoba, datos censo 2010</h3> ";
-        info += "<div id='loading' style='padding:5px; float:left'><img src='resources/img/loading.gif' /></div>"
-
+        info += "<h3 style='margin-top: -5px;'>Asentamientos humanos en Argentina 2014</h3> ";
+        info +="<h4>Datos y código</h4>";
+        info +="Puede verse <a target='_blank' href='https://github.com/HackatONG-ProgramAR/Localidades-Argentinas'>aqui</a>";
+        
+        info += "<div id='loading' style='padding:5px; clear:both; float:left'><img src='resources/img/loading.gif' /></div>"
+        info += "</div>";
+        
+        /*
         var content = [];
         content.push('Elija variable: ');
         content.push('<select id="seldata" onchange="showData();">');
@@ -100,18 +105,10 @@ var styleMap = [
         
         content.push('<input type="button" value="ayuda" onclick="$(\'#helpp\').toggle();" />');
         content.push('<a style="color:white;" href="andresvazquez.com.ar/blog/cordoba-a-nivel-de-radio-censal/" target="_blank">De donde salen estos datos?</a>');
-        
-        content.push("<div id='helpp' style='display:none'>");
-        content.push("<h3>Consideraciones</h3>");
-        content.push("Cada desplazamiento en el mapa (incluyendo zoom) y seleccion de grafico cambia la URL en la barra de direcciones para que pueda compartir <i>exactamente</i> lo que esta viendo solo copiando esta direccion");
-        content.push("<br/>Cada punto en el mapa es una estimacion bastante acertada pero no exacta del centro de cada <i>radio censal</i>");
-        content.push("</div>");
-        content.push("</div>");
-        info += content.join('');
-
-
-        $(infod).html(info);
         */
+        
+        $(infod).html(info);
+        
         loadPoints();
         
       }
@@ -133,7 +130,7 @@ var styleMap = [
      function showData()
         {
         upUrl();
-        var variable = $('#seldata').val();
+        //var variable = $('#seldata').val();
         //if (undefined === variable) return;
         
         $("#loading").show(400);
@@ -145,6 +142,7 @@ var styleMap = [
         var contWin = [];
         for (var k=0; k < datos.length; k++)
             {
+            $("#loading").html(k + " de " + datos.length);
             var lati = datos[k].lat_gd;
             var longi = datos[k].long_gd;
             
@@ -180,8 +178,9 @@ var styleMap = [
                infowindow[this.idx].setPosition(ev.latLng);
                infowindow[this.idx].open(map);
                });
-        $("#loading").hide(400);    
+            
         }
+        $("#loading").hide(400);
     }
       
       function upUrl()
